@@ -164,8 +164,197 @@
       color: #888;
       margin-top: 4px;
     }
+    .hint a { color: #0d99ff; }
     .hint.ok    { color: #1abc7c; }
     .hint.error { color: #e53e3e; }
+
+    .input-row {
+      display: flex;
+      gap: 6px;
+    }
+    .input-row input { flex: 1; }
+    .btn-inline {
+      flex-shrink: 0;
+      padding: 7px 12px;
+    }
+
+    .loading-label {
+      font-weight: 400;
+      font-size: 10px;
+      color: #aaa;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .onboarding-header {
+      background: #f0f7ff;
+      border: 1px solid #c2deff;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: #1a5fa8;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .notice {
+      background: #fffbea;
+      border: 1px solid #f5d76e;
+      border-radius: 6px;
+      padding: 9px 12px;
+      font-size: 11px;
+      color: #7a5c00;
+      margin-bottom: 12px;
+    }
+
+    .persist-note {
+      margin-top: 14px;
+      font-size: 11px;
+      color: #bbb;
+      text-align: center;
+    }
+
+    /* ── GitHub OAuth button ── */
+    .btn-github {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #24292f;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-github:hover:not(:disabled) { background: #32383f; }
+    .btn-github:disabled { opacity: .45; cursor: not-allowed; }
+
+    /* ── Device flow card ── */
+    .device-flow-card {
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .device-flow-label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    .device-code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      color: #111;
+      margin: 12px 0;
+      user-select: all;
+    }
+    .device-flow-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 12px 0 10px;
+    }
+    .device-flow-actions a.btn { text-decoration: none; }
+    .device-flow-footer {
+      font-size: 11px;
+      color: #888;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .device-flow-countdown {
+      font-family: monospace;
+      color: #555;
+    }
+    .pulse-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #0d99ff;
+      display: inline-block;
+      animation: pulse 1s infinite;
+    }
+
+    /* ── Connected card ── */
+    .connected-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: #f7fdf9;
+      border: 1px solid #c3e6cb;
+      border-radius: 8px;
+    }
+    .connected-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: #1abc7c;
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .connected-info { flex: 1; }
+    .connected-name { font-weight: 600; font-size: 13px; }
+    .connected-sub  { font-size: 11px; color: #888; }
+
+    .btn-danger-ghost {
+      background: none;
+      border: 1px solid #fca5a5;
+      color: #dc2626;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-danger-ghost:hover { background: #fee2e2; }
+
+    /* ── Small text links ── */
+    .btn-link {
+      background: none;
+      border: none;
+      color: #0d99ff;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .btn-link:hover { color: #0888e0; }
+    .pat-toggle {
+      display: block;
+      margin-top: 10px;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* ── OAuth status messages ── */
+    .oauth-waiting {
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+      padding: 10px 0;
+    }
+    .oauth-error {
+      font-size: 11px;
+      color: #dc2626;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: 6px;
+    }
 
     .divider {
       border: none;

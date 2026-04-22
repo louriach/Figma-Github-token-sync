@@ -7,6 +7,10 @@
   "editorType": ["figma"],
   "permissions": ["currentuser"],
   "networkAccess": {
-    "allowedDomains": ["https://api.github.com", "https://gitlab.com"]
+    "allowedDomains": [
+      "https://github.com",
+      "https://api.github.com",
+      "https://gitlab.com"
+    ]
   }
 }

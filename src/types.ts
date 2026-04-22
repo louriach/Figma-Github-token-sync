@@ -22,6 +22,8 @@ export type Provider = 'github' | 'gitlab';
 export interface Settings {
   provider: Provider;
   token: string;
+  /** Display name of the authenticated user, stored after OAuth/PAT validation */
+  connectedLogin: string;
   owner: string;
   repo: string;
   branch: string;
@@ -31,11 +33,21 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   provider: 'github',
   token: '',
+  connectedLogin: '',
   owner: '',
   repo: '',
   branch: 'main',
   tokensPath: 'tokens/',
 };
+
+// ─── OAuth Device Flow UI state ──────────────────────────────────────────────
+
+export type OAuthStatus =
+  | { kind: 'idle' }
+  | { kind: 'requesting' }
+  | { kind: 'pending'; userCode: string; verificationUri: string; expiresAt: number }
+  | { kind: 'polling' }
+  | { kind: 'error'; message: string };
 
 // ─── W3C DTCG Token Format ──────────────────────────────────────────────────
 

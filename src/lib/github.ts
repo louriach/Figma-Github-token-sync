@@ -1,14 +1,33 @@
 import type { GitProvider, FileEntry, FileContent } from './provider';
 
+function b64Decode(b64: string): string {
+  const bytes = Uint8Array.from(atob(b64.replace(/\n/g, '')), (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function b64Encode(text: string): string {
+  const bytes = new TextEncoder().encode(text);
+  let binary = '';
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  return btoa(binary);
+}
+
 export class GitHubProvider implements GitProvider {
   private readonly base = 'https://api.github.com';
+  private readonly ownerEnc: string;
+  private readonly repoEnc: string;
+  private readonly branchEnc: string;
 
   constructor(
     private token: string,
     private owner: string,
     private repo: string,
     private branch: string
-  ) {}
+  ) {
+    this.ownerEnc = encodeURIComponent(owner);
+    this.repoEnc = encodeURIComponent(repo);
+    this.branchEnc = encodeURIComponent(branch);
+  }
 
   private headers(): HeadersInit {
     return {
@@ -26,10 +45,85 @@ export class GitHubProvider implements GitProvider {
     return { login: data.login };
   }
 
+  async listRepos(): Promise<string[]> {
+    const repos: string[] = [];
+    let page = 1;
+    while (true) {
+      const res = await fetch(
+        `${this.base}/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner,collaborator,organization_member`,
+        { headers: this.headers() }
+      );
+      if (!res.ok) throw new Error(`GitHub list repos failed: ${res.status} ${res.statusText}`);
+      const data: Array<{ full_name: string }> = await res.json();
+      if (data.length === 0) break;
+      repos.push(...data.map((r) => r.full_name));
+      if (data.length < 100) break;
+      page++;
+    }
+    return repos;
+  }
+
+  async listBranches(owner: string, repo: string): Promise<string[]> {
+    const branches: string[] = [];
+    let page = 1;
+    while (true) {
+      const res = await fetch(
+        `${this.base}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/branches?per_page=100&page=${page}`,
+        { headers: this.headers() }
+      );
+      if (!res.ok) throw new Error(`GitHub list branches failed: ${res.status} ${res.statusText}`);
+      const data: Array<{ name: string }> = await res.json();
+      if (data.length === 0) break;
+      branches.push(...data.map((b) => b.name));
+      if (data.length < 100) break;
+      page++;
+    }
+    return branches;
+  }
+
+  async ensureBranch(owner: string, repo: string, branch: string): Promise<boolean> {
+    const oEnc = encodeURIComponent(owner);
+    const rEnc = encodeURIComponent(repo);
+
+    // Check if branch already exists
+    const checkRes = await fetch(
+      `${this.base}/repos/${oEnc}/${rEnc}/git/ref/heads/${encodeURIComponent(branch)}`,
+      { headers: this.headers() }
+    );
+    if (checkRes.ok) return false; // already exists
+
+    // Get the default branch to branch from
+    const repoRes = await fetch(`${this.base}/repos/${oEnc}/${rEnc}`, { headers: this.headers() });
+    if (!repoRes.ok) throw new Error(`Cannot read repo info: ${repoRes.status}`);
+    const repoData = await repoRes.json();
+    const defaultBranch: string = repoData.default_branch;
+
+    // Get the SHA of the default branch HEAD
+    const refRes = await fetch(
+      `${this.base}/repos/${oEnc}/${rEnc}/git/ref/heads/${encodeURIComponent(defaultBranch)}`,
+      { headers: this.headers() }
+    );
+    if (!refRes.ok) throw new Error(`Cannot read default branch ref: ${refRes.status}`);
+    const refData = await refRes.json();
+    const sha: string = refData.object.sha;
+
+    // Create the new branch
+    const createRes = await fetch(`${this.base}/repos/${oEnc}/${rEnc}/git/refs`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify({ ref: `refs/heads/${branch}`, sha }),
+    });
+    if (!createRes.ok) {
+      const err = await createRes.json().catch(() => ({ message: createRes.statusText }));
+      throw new Error(`GitHub create branch failed: ${createRes.status} – ${err.message}`);
+    }
+    return true;
+  }
+
   async listFiles(dirPath: string): Promise<FileEntry[]> {
     const path = dirPath.replace(/\/$/, '');
     const res = await fetch(
-      `${this.base}/repos/${this.owner}/${this.repo}/contents/${path}?ref=${this.branch}`,
+      `${this.base}/repos/${this.ownerEnc}/${this.repoEnc}/contents/${path}?ref=${this.branchEnc}`,
       { headers: this.headers() }
     );
     if (res.status === 404) return [];
@@ -47,16 +141,13 @@ export class GitHubProvider implements GitProvider {
 
   async getFile(filePath: string): Promise<FileContent | null> {
     const res = await fetch(
-      `${this.base}/repos/${this.owner}/${this.repo}/contents/${filePath}?ref=${this.branch}`,
+      `${this.base}/repos/${this.ownerEnc}/${this.repoEnc}/contents/${filePath}?ref=${this.branchEnc}`,
       { headers: this.headers() }
     );
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`GitHub get failed: ${res.status} ${res.statusText}`);
     const data = await res.json();
-    const content = decodeURIComponent(
-      escape(atob(data.content.replace(/\n/g, '')))
-    );
-    return { content, sha: data.sha };
+    return { content: b64Decode(data.content), sha: data.sha };
   }
 
   async putFile(
@@ -65,16 +156,15 @@ export class GitHubProvider implements GitProvider {
     message: string,
     sha?: string
   ): Promise<void> {
-    const encoded = btoa(unescape(encodeURIComponent(content)));
     const body: Record<string, unknown> = {
       message,
-      content: encoded,
+      content: b64Encode(content),
       branch: this.branch,
     };
     if (sha) body.sha = sha;
 
     const res = await fetch(
-      `${this.base}/repos/${this.owner}/${this.repo}/contents/${filePath}`,
+      `${this.base}/repos/${this.ownerEnc}/${this.repoEnc}/contents/${filePath}`,
       { method: 'PUT', headers: this.headers(), body: JSON.stringify(body) }
     );
     if (!res.ok) {

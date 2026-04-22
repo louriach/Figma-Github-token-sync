@@ -78,35 +78,51 @@ Aliases between variables are stored as W3C references:
 
 ## Getting started
 
-### 1. Create a Personal Access Token
+### 1. Register a GitHub OAuth App
 
-**GitHub** — go to [Settings → Personal access tokens → Fine-grained tokens](https://github.com/settings/personal-access-tokens/new) and create a token with:
-- **Repository access**: the specific repo you want to sync
-- **Permissions**: Contents → Read and Write
+The plugin uses GitHub's Device Flow so users never have to create or copy a token manually.
 
-**GitLab** — go to Preferences → Access Tokens and create a token with the `api` scope.
+1. Go to [github.com/settings/developers → OAuth Apps → New OAuth App](https://github.com/settings/developers)
+2. Fill in the form:
+   - **Application name**: Figma GitHub Token Sync
+   - **Homepage URL**: `https://github.com/louriach/Figma-Github-token-sync`
+   - **Authorization callback URL**: `https://github.com` (Device Flow doesn't use this, but the field is required)
+3. Click **Register application**
+4. On the app page, click **Enable Device Flow**
+5. Copy the **Client ID** (it is public — safe to commit)
+6. Open `src/lib/github-oauth.ts` and replace `'YOUR_OAUTH_APP_CLIENT_ID'` with your Client ID
+7. Run `npm run build`
 
-> Using a fine-grained token scoped to a single repository is strongly recommended over a classic token with broad `repo` access.
+> The Client ID is **not** a secret. Device Flow requires no Client Secret.
 
 ### 2. Install the plugin
 
 1. Clone or download this repository
-2. In Figma, go to **Plugins → Development → Import plugin from manifest**
-3. Select the `manifest.json` file from this repo
-4. Run `npm install && npm run build` first to generate the `dist/` files
+2. Run `npm install && npm run build` to generate the `dist/` files
+3. In Figma, go to **Plugins → Development → Import plugin from manifest**
+4. Select the `manifest.json` file
 
-### 3. Configure
+### 3. Connect and configure
 
-On first open the plugin shows the settings screen:
+On first open, the plugin shows the onboarding screen:
 
-1. Select your provider (GitHub or GitLab)
-2. Paste your PAT and click **Connect** — your repositories load automatically
-3. Select the repository from the dropdown
-4. Pick or type a branch name (it will be created if it doesn't exist)
-5. Set the tokens path (default: `tokens/`)
-6. Click **Save settings** — the plugin switches to the Sync tab
+**GitHub:**
+1. Click **Sign in with GitHub**
+2. A short code appears — click **Open GitHub ↗** (or go to [github.com/login/device](https://github.com/login/device) manually) and enter it
+3. Approve access — the plugin connects automatically, no token copying required
 
-Settings are saved locally in Figma. You won't need to re-enter them next time.
+**GitLab (or GitHub fallback):**
+1. Click "Use a personal access token instead"
+2. Create a token at [gitlab.com/-/user_settings/personal_access_tokens](https://gitlab.com/-/user_settings/personal_access_tokens) with the `api` scope
+3. Paste it and click **Connect**
+
+Once connected:
+1. Select your repository from the dropdown
+2. Pick or type a branch name (it will be created from your default branch on first push)
+3. Set the tokens path (default: `tokens/`)
+4. Click **Save settings** — the plugin switches to the Sync tab
+
+Settings are saved locally in Figma. You won't need to sign in again.
 
 ---
 
@@ -161,7 +177,7 @@ tokens/
 
 - [ ] Conflict detection (warn when remote has changed since last pull)
 - [ ] Selective collection sync (choose which collections to push/pull)
-- [ ] OAuth flow (avoid manual PAT creation)
+- [ ] GitLab OAuth (Device Authorization Grant)
 - [ ] Support for Bitbucket
 - [ ] VS Code extension using the same token format
 

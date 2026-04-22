@@ -47,11 +47,18 @@ function scalarToTokenValue(
   return value as string | number | boolean;
 }
 
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+function isSafeKey(k: string): boolean {
+  return !DANGEROUS_KEYS.has(k);
+}
+
 function setNested(obj: TokenGroup, path: string[], token: DesignToken): void {
+  if (path.some((k) => !isSafeKey(k))) return;
   let cur: TokenGroup = obj;
   for (let i = 0; i < path.length - 1; i++) {
     const key = path[i];
-    if (!cur[key] || '$value' in (cur[key] as object)) cur[key] = {};
+    if (!cur[key] || '$value' in (cur[key] as object)) cur[key] = Object.create(null);
     cur = cur[key] as TokenGroup;
   }
   cur[path[path.length - 1]] = token;
@@ -153,15 +160,18 @@ interface FlatToken {
   token: DesignToken;
 }
 
-function flattenGroup(obj: TokenGroup, prefix: string[] = []): FlatToken[] {
+const MAX_TOKEN_DEPTH = 20;
+
+function flattenGroup(obj: TokenGroup, prefix: string[] = [], depth = 0): FlatToken[] {
+  if (depth > MAX_TOKEN_DEPTH) return [];
   const out: FlatToken[] = [];
   for (const [key, val] of Object.entries(obj)) {
-    if (key.startsWith('$')) continue;
+    if (key.startsWith('$') || !isSafeKey(key)) continue;
     const path = [...prefix, key];
-    if ('$value' in (val as object)) {
+    if (val && typeof val === 'object' && '$value' in val) {
       out.push({ path, token: val as DesignToken });
     } else {
-      out.push(...flattenGroup(val as TokenGroup, path));
+      out.push(...flattenGroup(val as TokenGroup, path, depth + 1));
     }
   }
   return out;
