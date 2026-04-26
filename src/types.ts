@@ -10,6 +10,9 @@ export type MessageType =
   | 'SETTINGS_DATA'
   | 'VARIABLES_DATA'
   | 'SET_VARIABLES_RESULT'
+  | 'GET_HISTORY'
+  | 'SAVE_OPERATION'
+  | 'HISTORY_DATA'
   | 'OPEN_URL'
   | 'ERROR';
 
@@ -111,6 +114,16 @@ export interface SetVariablesResult {
   updated: number;
   errors: string[];
   log: string[];
+}
+
+// ─── Operation history ───────────────────────────────────────────────────────
+
+export interface OperationRecord {
+  timestamp: number;
+  type: 'push' | 'pull';
+  status: 'ok' | 'error';
+  summary: string;
+  lines: string[];
 }
 
 // ─── Pull diff ───────────────────────────────────────────────────────────────

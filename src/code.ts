@@ -115,8 +115,10 @@ async function applyVariables(
 
     // Remove modes that are no longer in the incoming data (e.g. old Light/Dark
     // after switching to Compact/Default/Comfortable). Must add new modes first
-    // so Figma always has at least one mode present.
-    for (const mode of col.modes) {
+    // so Figma always has at least one mode present. Snapshot modes before the
+    // loop because removeMode mutates col.modes in place.
+    const modesSnapshot = [...col.modes];
+    for (const mode of modesSnapshot) {
       if (!incomingModeNames.has(mode.name)) {
         try { col.removeMode(mode.modeId); } catch { /* ignore */ }
         modeByName.delete(mode.name);
@@ -163,6 +165,14 @@ async function applyVariables(
     );
     contexts.push({ col, remoteModeIdToLocal, rawVars: rawCol.variables, colName: rawCol.name });
   }
+
+  // Save a named version in Figma before touching any values, so the user has
+  // a restore point in File > Show Version History.
+  try {
+    const stamp = new Date().toLocaleString();
+    await figma.saveVersionHistoryAsync(`Before token pull (${stamp})`);
+    result.log.push(`📌 Figma version saved — restore via File › Version history`);
+  } catch { /* saveVersionHistoryAsync may not be available on all plan types */ }
 
   // Pass 2: set all values now that every variable exists.
   // Alias chains of any depth (A→B→C) work because Figma resolves them natively;
@@ -240,6 +250,19 @@ figma.ui.onmessage = async (msg: PluginMessage) => {
       } catch (e) {
         figma.ui.postMessage({ type: 'ERROR', payload: String(e) });
       }
+      break;
+    }
+
+    case 'GET_HISTORY': {
+      const history = (await figma.clientStorage.getAsync('operationHistory')) ?? [];
+      figma.ui.postMessage({ type: 'HISTORY_DATA', payload: history });
+      break;
+    }
+
+    case 'SAVE_OPERATION': {
+      const existing = (await figma.clientStorage.getAsync('operationHistory')) ?? [];
+      const updated = [msg.payload, ...existing].slice(0, 30);
+      await figma.clientStorage.setAsync('operationHistory', updated);
       break;
     }
 

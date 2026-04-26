@@ -7,6 +7,7 @@ import type {
   TokenFile,
   SetVariablesResult,
   FileDiff,
+  OperationRecord,
 } from './types';
 import { DEFAULT_SETTINGS } from './types';
 import { GitHubProvider } from './lib/github';
@@ -33,7 +34,7 @@ function splitFullName(fullName: string): { owner: string; repo: string } {
 }
 
 type DotState = 'idle' | 'working' | 'ok' | 'error';
-type Tab = 'welcome' | 'sync' | 'settings';
+type Tab = 'welcome' | 'sync' | 'settings' | 'log';
 interface LogLine { text: string; kind: 'info' | 'ok' | 'error'; }
 
 // ─── App ─────────────────────────────────────────────────────────────────────
@@ -46,6 +47,8 @@ export default function App() {
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [busy, setBusy] = useState(false);
   const [pendingPull, setPendingPull] = useState<{ files: Record<string, TokenFile>; diffs: FileDiff[] } | null>(null);
+  const [history, setHistory] = useState<OperationRecord[]>([]);
+  const [expandedLog, setExpandedLog] = useState<number | null>(null);
   const [fileSelection, setFileSelection] = useState<{ files: Array<{ name: string; path: string }>; selected: Set<string> } | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
@@ -67,6 +70,7 @@ export default function App() {
 
   useEffect(() => {
     postMsg({ type: 'GET_SETTINGS' });
+    postMsg({ type: 'GET_HISTORY' });
     const handler = (event: MessageEvent) => {
       const msg = event.data?.pluginMessage as PluginMessage | undefined;
       if (!msg) return;
@@ -125,6 +129,9 @@ export default function App() {
         setVarsResolver.current?.(msg.payload as SetVariablesResult);
         setVarsResolver.current = null;
         break;
+      case 'HISTORY_DATA':
+        setHistory(msg.payload as OperationRecord[]);
+        break;
       case 'ERROR':
         addLog(String(msg.payload), 'error');
         setStatus(String(msg.payload), 'error');
@@ -145,6 +152,11 @@ export default function App() {
       setVarsResolver.current = resolve;
       postMsg({ type: 'SET_VARIABLES', payload: collections });
     });
+  }
+
+  function saveOperation(op: OperationRecord) {
+    postMsg({ type: 'SAVE_OPERATION', payload: op });
+    setHistory((prev) => [op, ...prev].slice(0, 30));
   }
 
   function scrollToSetup() {
@@ -230,27 +242,33 @@ export default function App() {
     setBusy(true);
     setLogs([]);
     setStatus('Reading Figma variables…', 'working');
+    const opLines: string[] = [];
+    const log = (text: string, kind: LogLine['kind'] = 'info') => { addLog(text, kind); opLines.push(text); };
     try {
       const provider = buildProvider(settings);
       const basePath = normaliseTokensPath(settings.tokensPath);
       const created = await provider.ensureBranch(settings.owner, settings.repo, settings.branch);
-      if (created) addLog(`Created branch "${settings.branch}" from default branch`, 'ok');
+      if (created) log(`Created branch "${settings.branch}" from default branch`, 'ok');
       const collections = await getVariables();
-      addLog(`Found ${collections.length} collection(s)`);
+      log(`Found ${collections.length} collection(s)`);
       const tokenFiles = collectionsToTokenFiles(collections);
       for (const { fileName, content } of Object.values(tokenFiles)) {
         const filePath = basePath + fileName;
         setStatus(`Pushing ${fileName}…`, 'working');
-        addLog(`→ ${filePath}`);
+        log(`→ ${filePath}`);
         const existing = await provider.getFile(filePath);
         await provider.putFile(filePath, JSON.stringify(content, null, 2), `chore: sync tokens from Figma (${fileName})`, existing?.sha);
-        addLog(`✓ ${fileName} pushed`, 'ok');
+        log(`✓ ${fileName} pushed`, 'ok');
       }
-      setStatus(`Pushed ${Object.keys(tokenFiles).length} file(s)`, 'ok');
-      addLog('Done!', 'ok');
+      log('Done!', 'ok');
+      const summary = `Pushed ${Object.keys(tokenFiles).length} file(s) to ${settings.branch}`;
+      setStatus(summary, 'ok');
+      saveOperation({ timestamp: Date.now(), type: 'push', status: 'ok', summary, lines: opLines });
     } catch (e) {
-      addLog(e instanceof Error ? e.message : String(e), 'error');
+      const msg = e instanceof Error ? e.message : String(e);
+      log(msg, 'error');
       setStatus('Push failed', 'error');
+      saveOperation({ timestamp: Date.now(), type: 'push', status: 'error', summary: 'Push failed: ' + msg, lines: opLines });
     } finally {
       setBusy(false);
     }
@@ -336,18 +354,24 @@ export default function App() {
     if (!pendingPull) return;
     setBusy(true);
     setStatus('Applying to Figma…', 'working');
+    const opLines: string[] = [];
+    const log = (text: string, kind: LogLine['kind'] = 'info') => { addLog(text, kind); opLines.push(text); };
     try {
       const collections = tokenFilesToCollections(pendingPull.files);
       const result = await applyVariables(collections);
-      result.log.forEach((l) => addLog(l, 'ok'));
-      result.errors.forEach((e) => addLog(`  ⚠ ${e}`, 'error'));
+      result.log.forEach((l) => { log(l, 'ok'); });
+      result.errors.forEach((e) => { log(`  ⚠ ${e}`, 'error'); });
       const total = result.created + result.updated;
-      setStatus(`Applied ${total} variable(s) across ${collections.length} collection(s)`, 'ok');
-      addLog('Done!', 'ok');
+      log('Done!', 'ok');
+      const summary = `Pulled ${Object.keys(pendingPull.files).length} file(s): ${total} variable(s) across ${collections.length} collection(s)`;
+      setStatus(summary, 'ok');
+      saveOperation({ timestamp: Date.now(), type: 'pull', status: result.errors.length > 0 ? 'error' : 'ok', summary, lines: opLines });
       setPendingPull(null);
     } catch (e) {
-      addLog(e instanceof Error ? e.message : String(e), 'error');
+      const msg = e instanceof Error ? e.message : String(e);
+      log(msg, 'error');
       setStatus('Pull failed', 'error');
+      saveOperation({ timestamp: Date.now(), type: 'pull', status: 'error', summary: 'Pull failed: ' + msg, lines: opLines });
     } finally {
       setBusy(false);
     }
@@ -574,6 +598,9 @@ export default function App() {
 
           <div className="tabs">
             <button className={`tab${tab === 'sync' ? ' active' : ''}`} onClick={() => setTab('sync')}>Sync</button>
+            <button className={`tab${tab === 'log' ? ' active' : ''}`} onClick={() => setTab('log')}>
+              Log{history.length > 0 ? ` (${history.length})` : ''}
+            </button>
             <button className={`tab${tab === 'settings' ? ' active' : ''}`} onClick={() => setTab('settings')}>Settings</button>
           </div>
 
@@ -661,6 +688,51 @@ export default function App() {
                   Try the example token files →
                 </button>
               </p>
+            </div>
+          )}
+
+          {/* ── Log tab ── */}
+          {tab === 'log' && (
+            <div className="panel">
+              {history.length === 0 ? (
+                <p className="persist-note" style={{ textAlign: 'center', paddingTop: 24 }}>No operations recorded yet.</p>
+              ) : (
+                <>
+                  <p className="persist-note" style={{ marginBottom: 12 }}>
+                    Before each pull, a Figma version is auto-saved. To revert, open{' '}
+                    <button className="btn-link" onClick={() => postMsg({ type: 'OPEN_URL', payload: 'https://help.figma.com/hc/en-us/articles/360038006754' })}>
+                      File › Version history ↗
+                    </button>
+                  </p>
+                  {history.map((op, i) => {
+                    const d = new Date(op.timestamp);
+                    const label = `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                    const isOpen = expandedLog === i;
+                    return (
+                      <div key={i} className="log-entry">
+                        <button
+                          className="log-entry-header"
+                          onClick={() => setExpandedLog(isOpen ? null : i)}
+                        >
+                          <span className={`log-entry-badge ${op.status === 'ok' ? 'log-badge-ok' : 'log-badge-err'}`}>
+                            {op.type === 'push' ? '↑' : '↓'} {op.type}
+                          </span>
+                          <span className="log-entry-summary">{op.summary}</span>
+                          <span className="log-entry-time">{label}</span>
+                          <span className="log-entry-chevron">{isOpen ? '▲' : '▼'}</span>
+                        </button>
+                        {isOpen && (
+                          <div className="log-entry-lines">
+                            {op.lines.map((line, j) => (
+                              <div key={j} className="log-entry-line">{line}</div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
             </div>
           )}
 
