@@ -192,7 +192,9 @@ export function tokenFilesToCollections(
   for (const [fileName, file] of Object.entries(files)) {
     const metadata = file.$metadata as { collection?: string; modes?: string[] } | undefined;
     const baseName = fileName.replace(/\.json$/i, '');
-    const defaultName = baseName.charAt(0).toUpperCase() + baseName.slice(1).replace(/[-_]/g, ' ');
+    // Preserve the exact casing from the filename so round-trips stay consistent.
+    // e.g. "color.json" → "color" (matching the Figma collection that was pushed)
+    const defaultName = baseName.replace(/[-_]/g, ' ');
     const colName: string = metadata?.collection ?? defaultName;
     const modes: string[] = metadata?.modes ?? [];
 
