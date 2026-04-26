@@ -1,0 +1,56 @@
+{
+  "$metadata": {
+    "collection": "color",
+    "modes": ["Light", "Dark"]
+  },
+  "Light": {
+    "background": {
+      "default":  { "$value": "{color.neutral.0}",   "$type": "color" },
+      "subtle":   { "$value": "{color.neutral.100}", "$type": "color" },
+      "elevated": { "$value": "{color.neutral.0}",   "$type": "color" }
+    },
+    "text": {
+      "default":  { "$value": "{color.neutral.900}", "$type": "color" },
+      "muted":    { "$value": "{color.neutral.150}", "$type": "color" },
+      "inverted": { "$value": "{color.neutral.0}",   "$type": "color" }
+    },
+    "border": {
+      "default": { "$value": "{color.neutral.150}", "$type": "color" },
+      "strong":  { "$value": "{color.neutral.800}", "$type": "color" }
+    },
+    "brand": {
+      "default": { "$value": "{color.blue.500}", "$type": "color" },
+      "hover":   { "$value": "{color.blue.700}", "$type": "color" },
+      "subtle":  { "$value": "{color.blue.100}", "$type": "color" }
+    },
+    "feedback": {
+      "danger":  { "$value": "{color.red.500}",   "$type": "color" },
+      "success": { "$value": "{color.green.500}", "$type": "color" }
+    }
+  },
+  "Dark": {
+    "background": {
+      "default":  { "$value": "{color.neutral.950}", "$type": "color" },
+      "subtle":   { "$value": "{color.neutral.900}", "$type": "color" },
+      "elevated": { "$value": "{color.neutral.800}", "$type": "color" }
+    },
+    "text": {
+      "default":  { "$value": "{color.neutral.0}",   "$type": "color" },
+      "muted":    { "$value": "{color.neutral.150}", "$type": "color" },
+      "inverted": { "$value": "{color.neutral.900}", "$type": "color" }
+    },
+    "border": {
+      "default": { "$value": "{color.neutral.800}", "$type": "color" },
+      "strong":  { "$value": "{color.neutral.150}", "$type": "color" }
+    },
+    "brand": {
+      "default": { "$value": "{color.blue.500}", "$type": "color" },
+      "hover":   { "$value": "{color.blue.100}", "$type": "color" },
+      "subtle":  { "$value": "{color.blue.700}", "$type": "color" }
+    },
+    "feedback": {
+      "danger":  { "$value": "{color.red.500}",   "$type": "color" },
+      "success": { "$value": "{color.green.500}", "$type": "color" }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$metadata": {
+    "collection": "spacing",
+    "modes": ["Compact", "Default", "Comfortable"]
+  },
+  "Compact": {
+    "component": {
+      "padding": {
+        "x": { "$value": "{space.2}", "$type": "number" },
+        "y": { "$value": "{space.1}", "$type": "number" }
+      },
+      "gap": { "$value": "{space.1}", "$type": "number" }
+    },
+    "layout": {
+      "padding": { "$value": "{space.3}", "$type": "number" },
+      "gap":     { "$value": "{space.2}", "$type": "number" },
+      "section": { "$value": "{space.4}", "$type": "number" }
+    }
+  },
+  "Default": {
+    "component": {
+      "padding": {
+        "x": { "$value": "{space.3}", "$type": "number" },
+        "y": { "$value": "{space.2}", "$type": "number" }
+      },
+      "gap": { "$value": "{space.2}", "$type": "number" }
+    },
+    "layout": {
+      "padding": { "$value": "{space.4}", "$type": "number" },
+      "gap":     { "$value": "{space.3}", "$type": "number" },
+      "section": { "$value": "{space.5}", "$type": "number" }
+    }
+  },
+  "Comfortable": {
+    "component": {
+      "padding": {
+        "x": { "$value": "{space.4}", "$type": "number" },
+        "y": { "$value": "{space.3}", "$type": "number" }
+      },
+      "gap": { "$value": "{space.3}", "$type": "number" }
+    },
+    "layout": {
+      "padding": { "$value": "{space.5}", "$type": "number" },
+      "gap":     { "$value": "{space.4}", "$type": "number" },
+      "section": { "$value": "{space.6}", "$type": "number" }
+    }
+  }
+}

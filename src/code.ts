@@ -86,16 +86,26 @@ async function applyVariables(
   // regardless of collection order or same-collection forward references.
   for (const rawCol of collections) {
     let col = colByName.get(rawCol.name);
+    const isNewCollection = !col;
     if (!col) {
       col = figma.variables.createVariableCollection(rawCol.name);
       colByName.set(rawCol.name, col);
     }
 
     const modeByName = new Map(col.modes.map((m) => [m.name, m.modeId]));
-    for (const rawMode of rawCol.modes) {
+    for (let i = 0; i < rawCol.modes.length; i++) {
+      const rawMode = rawCol.modes[i];
       if (!modeByName.has(rawMode.name)) {
-        const newId = col.addMode(rawMode.name);
-        modeByName.set(rawMode.name, newId);
+        // Figma creates a default "Mode 1" when a collection is first made.
+        // Rename it to the first incoming mode instead of adding a duplicate.
+        if (isNewCollection && i === 0 && col.modes.length === 1) {
+          col.renameMode(col.modes[0].modeId, rawMode.name);
+          modeByName.delete(col.modes[0].name);
+          modeByName.set(rawMode.name, col.modes[0].modeId);
+        } else {
+          const newId = col.addMode(rawMode.name);
+          modeByName.set(rawMode.name, newId);
+        }
       }
     }
 

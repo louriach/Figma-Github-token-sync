@@ -170,9 +170,9 @@ The [`examples/`](https://github.com/louriach/Figma-Github-token-sync/tree/main/
 
 | Folder | Collections | Tests |
 |--------|-------------|-------|
-| [`01-single-collection/`](https://github.com/louriach/Figma-Github-token-sync/tree/main/examples/01-single-collection/tokens) | `primitives` | Basic push/pull, no aliases |
-| [`02-two-collections/`](https://github.com/louriach/Figma-Github-token-sync/tree/main/examples/02-two-collections/tokens) | `primitives` + `semantic` | Cross-collection aliases, one level deep |
-| [`03-three-collections/`](https://github.com/louriach/Figma-Github-token-sync/tree/main/examples/03-three-collections/tokens) | `primitives` + `semantic-color` + `semantic-size` + `components` | Parallel fan-out + two-level alias chain |
+| [`01-single-collection/`](https://github.com/louriach/Figma-Variable-Sync-to-Repo/tree/main/examples/01-single-collection/tokens) | `primitives` | Basic push/pull, no modes, no aliases |
+| [`02-two-collections/`](https://github.com/louriach/Figma-Variable-Sync-to-Repo/tree/main/examples/02-two-collections/tokens) | `primitives` + `color` (Light/Dark) | Cross-collection aliases, multi-mode |
+| [`03-three-collections/`](https://github.com/louriach/Figma-Variable-Sync-to-Repo/tree/main/examples/03-three-collections/tokens) | `primitives` + `color` (Light/Dark) + `spacing` (Compact/Default/Comfortable) + `typography` (Mobile/Tablet/Desktop) | Parallel fan-out, realistic mode structures |
 
 To test: commit a `tokens/` folder to your repo, point the plugin at that path, and pull.
 

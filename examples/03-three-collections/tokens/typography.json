@@ -1,0 +1,51 @@
+{
+  "$metadata": {
+    "collection": "typography",
+    "modes": ["Mobile", "Tablet", "Desktop"]
+  },
+  "Mobile": {
+    "heading": {
+      "1": { "$value": "{font.size.2xl}", "$type": "number" },
+      "2": { "$value": "{font.size.xl}",  "$type": "number" },
+      "3": { "$value": "{font.size.lg}",  "$type": "number" }
+    },
+    "body": {
+      "default": { "$value": "{font.size.sm}", "$type": "number" },
+      "large":   { "$value": "{font.size.md}", "$type": "number" }
+    },
+    "label": {
+      "default": { "$value": "{font.size.xs}", "$type": "number" },
+      "large":   { "$value": "{font.size.sm}", "$type": "number" }
+    }
+  },
+  "Tablet": {
+    "heading": {
+      "1": { "$value": "{font.size.3xl}", "$type": "number" },
+      "2": { "$value": "{font.size.2xl}", "$type": "number" },
+      "3": { "$value": "{font.size.xl}",  "$type": "number" }
+    },
+    "body": {
+      "default": { "$value": "{font.size.md}", "$type": "number" },
+      "large":   { "$value": "{font.size.lg}", "$type": "number" }
+    },
+    "label": {
+      "default": { "$value": "{font.size.sm}", "$type": "number" },
+      "large":   { "$value": "{font.size.md}", "$type": "number" }
+    }
+  },
+  "Desktop": {
+    "heading": {
+      "1": { "$value": "{font.size.3xl}", "$type": "number" },
+      "2": { "$value": "{font.size.2xl}", "$type": "number" },
+      "3": { "$value": "{font.size.xl}",  "$type": "number" }
+    },
+    "body": {
+      "default": { "$value": "{font.size.md}", "$type": "number" },
+      "large":   { "$value": "{font.size.lg}", "$type": "number" }
+    },
+    "label": {
+      "default": { "$value": "{font.size.sm}", "$type": "number" },
+      "large":   { "$value": "{font.size.md}", "$type": "number" }
+    }
+  }
+}
