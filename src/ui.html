@@ -16,9 +16,9 @@
     }
 
     /* ── Page theme tokens ── */
-    .page--push     { --page-hue: #60a5fa; --page-bg: rgba(96,165,250,.08);  --page-border: rgba(96,165,250,.22);  }
-    .page--pull     { --page-hue: #4ade80; --page-bg: rgba(74,222,128,.08);  --page-border: rgba(74,222,128,.22);  }
-    .page--log      { --page-hue: #fbbf24; --page-bg: rgba(251,191,36,.08);  --page-border: rgba(251,191,36,.22);  }
+    .page--push     { --page-hue: #7aabda; --page-bg: rgba(96,165,250,.08);  --page-border: rgba(96,165,250,.22);  }
+    .page--pull     { --page-hue: #6bbf87; --page-bg: rgba(74,222,128,.08);  --page-border: rgba(74,222,128,.22);  }
+    .page--log      { --page-hue: #d4a843; --page-bg: rgba(251,191,36,.08);  --page-border: rgba(251,191,36,.22);  }
     .page--settings { --page-hue: #94a3b8; --page-bg: rgba(148,163,184,.08); --page-border: rgba(148,163,184,.22); }
 
     /* ── App header (unified: back | title | status) ── */
@@ -227,6 +227,15 @@
     }
     .btn-page:not(:disabled):hover { filter: brightness(1.1); }
 
+    /* Quiet — no border, text only (for Close/dismiss in sheets) */
+    .btn-quiet {
+      background: transparent;
+      color: #aaa;
+      border: none;
+      justify-content: center;
+    }
+    .btn-quiet:not(:disabled):hover { color: #e5e5e5; }
+
     /* Ghost — low emphasis */
     .btn-ghost {
       background: transparent;
@@ -358,7 +367,7 @@
     .diff-file-name { color: #e5e5e5; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
     .diff-stats { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .diff-none    { color: #aaa; font-size: 12px; }
-    .diff-updated { color: #60a5fa; font-size: 12px; font-weight: 600; }
+    .diff-updated { color: #4ade80; font-size: 12px; font-weight: 600; }
     .diff-added   { color: #4ade80; font-size: 12px; font-weight: 600; }
     .diff-removed { color: #f87171; font-size: 12px; font-weight: 600; }
 

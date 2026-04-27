@@ -787,10 +787,10 @@ export default function App() {
                     </label>
                   ))}
                   <div className="btn-row" style={{ marginTop: 12 }}>
+                    <button className="btn btn-ghost" onClick={() => { setFileSelection(null); setPullLogs([]); }} disabled={busy}>Cancel</button>
                     <button className="btn btn-page" disabled={busy || fileSelection.selected.size === 0} onClick={handleDownloadSelected}>
                       {busy ? 'Downloading…' : 'Download & compare'}
                     </button>
-                    <button className="btn btn-ghost" onClick={() => { setFileSelection(null); setPullLogs([]); }} disabled={busy}>Cancel</button>
                   </div>
                 </div>
               )}
@@ -833,10 +833,10 @@ export default function App() {
                       </>
                     )}
                     <div className="btn-row" style={{ marginTop: 12 }}>
+                      <button className="btn btn-ghost" onClick={() => { setPendingPull(null); setPullLogs([]); }} disabled={busy}>Cancel</button>
                       <button className="btn btn-page" onClick={handleConfirmPull} disabled={busy}>
                         {busy ? 'Applying…' : 'Apply changes'}
                       </button>
-                      <button className="btn btn-ghost" onClick={() => { setPendingPull(null); setPullLogs([]); }} disabled={busy}>Cancel</button>
                     </div>
                   </div>
                 );
@@ -1071,7 +1071,7 @@ export default function App() {
                 </div>
               </div>
               <div className="sheet-footer">
-                <button className="btn btn-soft" onClick={() => setDiffDetail(null)} disabled={busy}>Close</button>
+                <button className="btn btn-quiet" onClick={() => setDiffDetail(null)} disabled={busy}>Close</button>
               </div>
             </div>
           </>
