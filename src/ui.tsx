@@ -34,7 +34,7 @@ function splitFullName(fullName: string): { owner: string; repo: string } {
 }
 
 type DotState = 'idle' | 'working' | 'ok' | 'error';
-type Tab = 'welcome' | 'sync' | 'settings' | 'log';
+type Tab = 'welcome' | 'push' | 'pull' | 'log' | 'settings';
 interface LogLine { text: string; kind: 'info' | 'ok' | 'error'; }
 
 // ─── App ─────────────────────────────────────────────────────────────────────
@@ -105,7 +105,7 @@ export default function App() {
           setSettings(s);
           if (s.owner && s.repo) setRepoFullName(`${s.owner}/${s.repo}`);
           if (s.token && s.owner && s.repo && s.branch) {
-            setTab('sync');
+            setTab('push');
           } else if (s.token) {
             setTab('settings');
           }
@@ -396,7 +396,7 @@ export default function App() {
   function saveSettings() {
     postMsg({ type: 'SAVE_SETTINGS', payload: settings });
     setStatus('Settings saved', 'ok');
-    if (settings.token && settings.owner && settings.repo && settings.branch) setTab('sync');
+    if (settings.token && settings.owner && settings.repo && settings.branch) setTab('push');
   }
 
   const isConnected = !!settings.token && !!settings.connectedLogin;
@@ -598,30 +598,53 @@ export default function App() {
           </div>
 
           <div className="tabs">
-            <button className={`tab${tab === 'sync' ? ' active' : ''}`} onClick={() => setTab('sync')}>Sync</button>
+            <button className={`tab${tab === 'push' ? ' active' : ''}`} onClick={() => setTab('push')}>Push</button>
+            <button className={`tab${tab === 'pull' ? ' active' : ''}`} onClick={() => setTab('pull')}>Pull</button>
             <button className={`tab${tab === 'log' ? ' active' : ''}`} onClick={() => setTab('log')}>
               Log{history.length > 0 ? ` (${history.length})` : ''}
             </button>
             <button className={`tab${tab === 'settings' ? ' active' : ''}`} onClick={() => setTab('settings')}>Settings</button>
           </div>
 
-          {/* ── Sync tab ── */}
-          {tab === 'sync' && (
+          {/* ── Push tab ── */}
+          {tab === 'push' && (
             <div className="panel">
               {!isConnected && (
                 <div className="notice">Connect your repository in <strong>Settings</strong> before syncing.</div>
               )}
               <div className="sync-card">
-                <h3>↑ Push to {providerLabel}</h3>
-                <p>Export all Figma variable collections as W3C design token JSON files.</p>
-                <button className="btn btn-primary" disabled={busy} onClick={handlePush}>
+                <h3>Push to {providerLabel}</h3>
+                <p>Export all Figma variable collections to your repo as W3C design token JSON files.</p>
+                <button className="btn btn-soft" disabled={busy} onClick={handlePush}>
                   {busy ? 'Working…' : 'Push tokens'}
                 </button>
               </div>
+              {logs.length > 0 && (
+                <div className="log-area" ref={logRef}>
+                  {logs.map((l, i) => (
+                    <div key={i} className={l.kind === 'ok' ? 'log-ok' : l.kind === 'error' ? 'log-error' : ''}>{l.text}</div>
+                  ))}
+                </div>
+              )}
+              <p className="persist-note" style={{ marginTop: 16 }}>
+                New here?{' '}
+                <button className="btn-link" onClick={() => postMsg({ type: 'OPEN_URL', payload: 'https://github.com/louriach/Figma-Github-token-sync/tree/main/examples' })}>
+                  Try the example token files
+                </button>
+              </p>
+            </div>
+          )}
+
+          {/* ── Pull tab ── */}
+          {tab === 'pull' && (
+            <div className="panel">
+              {!isConnected && (
+                <div className="notice">Connect your repository in <strong>Settings</strong> before syncing.</div>
+              )}
               <div className="sync-card">
-                <h3>↓ Pull from {providerLabel}</h3>
-                <p>Import W3C design token JSON files and create/update Figma variables.</p>
-                <button className="btn btn-secondary" disabled={busy} onClick={handlePull}>
+                <h3>Pull from {providerLabel}</h3>
+                <p>Import W3C design token JSON files from your repo and create or update Figma variables.</p>
+                <button className="btn btn-soft" disabled={busy} onClick={handlePull}>
                   {busy ? 'Working…' : 'Pull tokens'}
                 </button>
               </div>
@@ -644,10 +667,10 @@ export default function App() {
                     </label>
                   ))}
                   <div className="btn-row" style={{ marginTop: 12 }}>
-                    <button className="btn btn-primary" disabled={busy || fileSelection.selected.size === 0} onClick={handleDownloadSelected}>
+                    <button className="btn btn-soft" disabled={busy || fileSelection.selected.size === 0} onClick={handleDownloadSelected}>
                       {busy ? 'Downloading…' : 'Download & compare'}
                     </button>
-                    <button className="btn btn-secondary" onClick={() => { setFileSelection(null); setLogs([]); }} disabled={busy}>Cancel</button>
+                    <button className="btn btn-ghost" onClick={() => { setFileSelection(null); setLogs([]); }} disabled={busy}>Cancel</button>
                   </div>
                 </div>
               )}
@@ -669,17 +692,17 @@ export default function App() {
                           {d.updated > 0 && <span className="diff-updated">{d.updated} updated</span>}
                           {d.added > 0 && <span className="diff-added">+{d.added}</span>}
                           {d.removed > 0 && <span className="diff-removed">−{d.removed}</span>}
-                          {d.hasChanges && <span className="diff-arrow">›</span>}
+                          {d.hasChanges && <span className="diff-arrow"></span>}
                         </span>
                       </button>
                     ))}
                   </div>
                   <p className="diff-hint">A Figma version will be auto-saved before applying.</p>
                   <div className="btn-row" style={{ marginTop: 12 }}>
-                    <button className="btn btn-primary" onClick={handleConfirmPull} disabled={busy}>
+                    <button className="btn btn-soft" onClick={handleConfirmPull} disabled={busy}>
                       {busy ? 'Applying…' : 'Apply changes'}
                     </button>
-                    <button className="btn btn-secondary" onClick={() => { setPendingPull(null); setLogs([]); }} disabled={busy}>Cancel</button>
+                    <button className="btn btn-ghost" onClick={() => { setPendingPull(null); setLogs([]); }} disabled={busy}>Cancel</button>
                   </div>
                 </div>
               )}
@@ -690,12 +713,6 @@ export default function App() {
                   ))}
                 </div>
               )}
-              <p className="persist-note" style={{ marginTop: 16 }}>
-                New here?{' '}
-                <button className="btn-link" onClick={() => postMsg({ type: 'OPEN_URL', payload: 'https://github.com/louriach/Figma-Github-token-sync/tree/main/examples' })}>
-                  Try the example token files →
-                </button>
-              </p>
             </div>
           )}
 
@@ -893,7 +910,7 @@ export default function App() {
                 </div>
               </div>
               <div className="sheet-footer">
-                <button className="btn btn-secondary" onClick={() => setDiffDetail(null)} disabled={busy}>Close</button>
+                <button className="btn btn-soft" onClick={() => setDiffDetail(null)} disabled={busy}>Close</button>
               </div>
             </div>
           </>

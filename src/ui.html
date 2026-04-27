@@ -44,32 +44,27 @@
     /* ── Tabs ── */
     .tabs {
       display: flex;
-      gap: 8px;
-      padding: 12px 16px;
-      border-bottom: 1px solid #383838;
+      padding: 0 16px;
+      border-bottom: 1px solid #2a2a2a;
+      gap: 0;
     }
     .tab {
-      flex: 1;
-      padding: 4px 12px;
+      padding: 10px 14px;
       background: transparent;
-      border: 1px solid #383838;
-      border-radius: 99px;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
       cursor: pointer;
       font-size: 11px;
       font-weight: 500;
-      color: #999;
-      transition: all .15s;
-      text-align: center;
+      color: #666;
+      transition: color .15s, border-color .15s;
+      white-space: nowrap;
     }
-    .tab:hover:not(.active) {
-      background: #2e2e2e;
-      color: #e5e5e5;
-      border-color: #555;
-    }
+    .tab:hover:not(.active) { color: #aaa; }
     .tab.active {
-      background: #ffffff;
-      color: #1c1c1c;
-      border-color: #ffffff;
+      color: #e5e5e5;
+      border-bottom-color: #e5e5e5;
       font-weight: 600;
     }
 
@@ -143,6 +138,24 @@
       color: #e5e5e5;
       border-color: #555;
     }
+
+    /* Softer equal-prominence action button */
+    .btn-soft {
+      background: #2e2e2e;
+      color: #e5e5e5;
+      border: 1px solid #444;
+      justify-content: center;
+    }
+    .btn-soft:not(:disabled):hover { background: #383838; border-color: #555; }
+
+    /* Ghost — low emphasis, for cancel/dismiss */
+    .btn-ghost {
+      background: transparent;
+      color: #777;
+      border: 1px solid transparent;
+      justify-content: center;
+    }
+    .btn-ghost:not(:disabled):hover { color: #aaa; }
 
     .btn-row {
       display: flex;
@@ -583,7 +596,7 @@
       border-top: 1px solid #2e2e2e;
       flex-shrink: 0;
     }
-    .sheet-footer .btn { flex: 1; }
+    .sheet-footer .btn { flex: 1; justify-content: center; }
     .diff-file-name { color: #e5e5e5; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 10px; }
     .diff-stats { display: flex; align-items: center; gap: 8px; }
     .diff-none    { color: #555; }
