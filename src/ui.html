@@ -136,10 +136,10 @@
     /* ── Inner page layout ── */
     .panel { padding: 16px; }
 
-    /* Tinted content card */
+    /* Content card */
     .page-card {
-      background: var(--page-bg, rgba(255,255,255,.04));
-      border: 1px solid var(--page-border, #383838);
+      background: rgba(255,255,255,.03);
+      border: 1px solid #2e2e2e;
       border-radius: 12px;
       padding: 16px;
       margin-bottom: 16px;
@@ -148,7 +148,7 @@
     /* ── Sync section inside page-card ── */
     .sync-section { margin-bottom: 0; }
     .sync-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       color: #e5e5e5;
       margin-bottom: 8px;
@@ -444,15 +444,17 @@
     }
     .log-entry-header:hover { background: #222; }
     .log-entry-badge {
-      font-size: 11px; font-weight: 600;
-      padding: 2px 6px; border-radius: 4px;
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; font-weight: 600;
+      padding: 2px 8px; border-radius: 4px;
       flex-shrink: 0;
     }
     .log-badge-ok  { background: #14532d; color: #4ade80; }
     .log-badge-err { background: #450a0a; color: #f87171; }
     .log-entry-summary { flex: 1; color: #ccc; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .log-entry-time    { color: #aaa; font-size: 11px; flex-shrink: 0; }
-    .log-entry-chevron { color: #aaa; font-size: 10px; flex-shrink: 0; }
+    .log-entry-chevron { color: #aaa; flex-shrink: 0; }
+    .diff-file-item--unchanged { opacity: .55; cursor: default !important; }
     .log-entry-lines {
       padding: 8px 12px; background: #111;
       font-size: 12px; color: #aaa;

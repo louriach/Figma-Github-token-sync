@@ -280,7 +280,7 @@ export default function App() {
       }
       log('Done!', 'ok');
       const summary = `Pushed ${Object.keys(tokenFiles).length} file(s) to ${settings.branch}`;
-      setStatus(summary, 'ok');
+      setStatus('Done', 'ok');
       saveOperation({ timestamp: Date.now(), type: 'push', status: 'ok', summary, lines: opLines });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -381,7 +381,7 @@ export default function App() {
       const total = result.created + result.updated;
       log('Done!', 'ok');
       const summary = `Pulled ${Object.keys(pendingPull.files).length} file(s): ${total} variable(s) across ${collections.length} collection(s)`;
-      setStatus(summary, 'ok');
+      setStatus('Done', 'ok');
       saveOperation({ timestamp: Date.now(), type: 'pull', status: result.errors.length > 0 ? 'error' : 'ok', summary, lines: opLines });
       setPendingPull(null);
     } catch (e) {
@@ -769,42 +769,53 @@ export default function App() {
                   </div>
                 </div>
               )}
-              {pendingPull && (
-                <div className="file-select-panel">
-                  <div className="diff-header">Review changes</div>
-                  <div className="diff-file-list">
-                    {pendingPull.diffs.map((d) => (
-                      <button
-                        key={d.fileName}
-                        className="diff-file-item"
-                        onClick={() => d.hasChanges && setDiffDetail(d.fileName)}
-                        style={{ cursor: d.hasChanges ? 'pointer' : 'default' }}
-                        disabled={!d.hasChanges}
-                      >
-                        <span className="diff-file-name">{d.fileName}</span>
-                        <span className="diff-stats">
-                          {!d.hasChanges && <span className="diff-none">No changes</span>}
-                          {d.updated > 0 && <span className="diff-updated">{d.updated} {d.updated === 1 ? 'change' : 'changes'}</span>}
-                          {d.added > 0 && <span className="diff-added">+{d.added}</span>}
-                          {d.removed > 0 && <span className="diff-removed">−{d.removed}</span>}
-                          {d.hasChanges && (
-                            <svg className="diff-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M9 18l6-6-6-6"/>
-                            </svg>
-                          )}
-                        </span>
+              {pendingPull && (() => {
+                const changed   = pendingPull.diffs.filter((d) => d.hasChanges);
+                const unchanged = pendingPull.diffs.filter((d) => !d.hasChanges);
+                return (
+                  <div className="file-select-panel">
+                    {changed.length > 0 && (
+                      <>
+                        <div className="diff-header">Changes</div>
+                        <div className="diff-file-list">
+                          {changed.map((d) => (
+                            <button key={d.fileName} className="diff-file-item" onClick={() => setDiffDetail(d.fileName)}>
+                              <span className="diff-file-name">{d.fileName}</span>
+                              <span className="diff-stats">
+                                {d.updated > 0 && <span className="diff-updated">{d.updated} {d.updated === 1 ? 'change' : 'changes'}</span>}
+                                {d.added > 0 && <span className="diff-added">+{d.added}</span>}
+                                {d.removed > 0 && <span className="diff-removed">−{d.removed}</span>}
+                                <svg className="diff-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M9 18l6-6-6-6"/>
+                                </svg>
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    {unchanged.length > 0 && (
+                      <>
+                        <div className="diff-header" style={{ marginTop: changed.length > 0 ? 12 : 0 }}>No changes</div>
+                        <div className="diff-file-list">
+                          {unchanged.map((d) => (
+                            <div key={d.fileName} className="diff-file-item diff-file-item--unchanged">
+                              <span className="diff-file-name">{d.fileName}</span>
+                              <span className="diff-none">Up to date</span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    <div className="btn-row" style={{ marginTop: 12 }}>
+                      <button className="btn btn-page" onClick={handleConfirmPull} disabled={busy}>
+                        {busy ? 'Applying…' : 'Apply changes'}
                       </button>
-                    ))}
+                      <button className="btn btn-ghost" onClick={() => { setPendingPull(null); setPullLogs([]); }} disabled={busy}>Cancel</button>
+                    </div>
                   </div>
-                  <p className="diff-hint">A restore point will be saved to Figma version history before applying.</p>
-                  <div className="btn-row" style={{ marginTop: 12 }}>
-                    <button className="btn btn-page" onClick={handleConfirmPull} disabled={busy}>
-                      {busy ? 'Applying…' : 'Apply changes'}
-                    </button>
-                    <button className="btn btn-ghost" onClick={() => { setPendingPull(null); setPullLogs([]); }} disabled={busy}>Cancel</button>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
               {!pendingPull && pullLogs.length > 0 && (
                 <div className="log-area" ref={pullLogRef}>
                   {pullLogs.map((l, i) => (
@@ -840,11 +851,18 @@ export default function App() {
                           onClick={() => setExpandedLog(isOpen ? null : i)}
                         >
                           <span className={`log-entry-badge ${op.status === 'ok' ? 'log-badge-ok' : 'log-badge-err'}`}>
-                            {op.type === 'push' ? '↑' : '↓'} {op.type}
+                            {op.status === 'ok' ? (
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+                              </svg>
+                            ) : '!'}
+                            {op.type === 'push' ? 'Push' : 'Pull'}
                           </span>
                           <span className="log-entry-summary">{op.summary}</span>
                           <span className="log-entry-time">{label}</span>
-                          <span className="log-entry-chevron">{isOpen ? '▲' : '▼'}</span>
+                          <svg className="log-entry-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            {isOpen ? <path d="m18 15-6-6-6 6"/> : <path d="m6 9 6 6 6-6"/>}
+                          </svg>
                         </button>
                         {isOpen && (
                           <div className="log-entry-lines">

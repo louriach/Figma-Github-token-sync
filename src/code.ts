@@ -166,12 +166,10 @@ async function applyVariables(
     contexts.push({ col, remoteModeIdToLocal, rawVars: rawCol.variables, colName: rawCol.name });
   }
 
-  // Save a named version in Figma before touching any values, so the user has
-  // a restore point in File > Show Version History.
+  // Save a named version in Figma before touching any values.
   try {
     const stamp = new Date().toLocaleString();
     await figma.saveVersionHistoryAsync(`Before token pull (${stamp})`);
-    result.log.push(`📌 Figma version saved — restore via File › Version history`);
   } catch { /* saveVersionHistoryAsync may not be available on all plan types */ }
 
   // Pass 2: set all values now that every variable exists.
