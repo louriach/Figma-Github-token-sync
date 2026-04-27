@@ -635,6 +635,7 @@ export default function App() {
                 <div className="notice">Connect your repository in <strong>Settings</strong> before syncing.</div>
               )}
               <div className="sync-section">
+                <p className="sync-title">Push tokens to repo</p>
                 <p className="sync-desc">Export all Figma variable collections to your repo as W3C design token JSON files.</p>
                 <button className="btn btn-soft" disabled={busy} onClick={handlePush}>
                   {busy ? 'Working…' : 'Push tokens'}
@@ -663,6 +664,7 @@ export default function App() {
                 <div className="notice">Connect your repository in <strong>Settings</strong> before syncing.</div>
               )}
               <div className="sync-section">
+                <p className="sync-title">Pull tokens from repo</p>
                 <p className="sync-desc">Import W3C design token JSON files from your repo and create or update Figma variables.</p>
                 <button className="btn btn-soft" disabled={busy} onClick={handlePull}>
                   {busy ? 'Working…' : 'Pull tokens'}
