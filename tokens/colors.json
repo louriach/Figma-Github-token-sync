@@ -159,7 +159,7 @@
   "Dark": {
     "brand": {
       "primary": {
-        "$value": "#3b82f6",
+        "$value": "{color.blue.500}",
         "$type": "color"
       },
       "primary-hover": {
