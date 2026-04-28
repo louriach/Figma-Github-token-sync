@@ -223,10 +223,6 @@
       "900": {
         "$value": "#f9fafb",
         "$type": "color"
-      },
-      "950": {
-        "$value": "#ffffff",
-        "$type": "color"
       }
     },
     "semantic": {
