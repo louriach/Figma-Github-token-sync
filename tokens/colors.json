@@ -9,7 +9,7 @@
   "Light": {
     "brand": {
       "primary": {
-        "$value": "#00cc9c",
+        "$value": "{color.green.500}",
         "$type": "color"
       },
       "primary-hover": {
