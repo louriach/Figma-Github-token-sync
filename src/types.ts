@@ -29,6 +29,7 @@ export interface Settings {
   provider: Provider;
   token: string;
   connectedLogin: string;
+  gitlabHost: string;
   owner: string;
   repo: string;
   branch: string;
@@ -39,6 +40,7 @@ export const DEFAULT_SETTINGS: Settings = {
   provider: 'github',
   token: '',
   connectedLogin: '',
+  gitlabHost: 'https://gitlab.com',
   owner: '',
   repo: '',
   branch: 'main',

@@ -7,10 +7,7 @@
   "editorType": ["figma"],
   "permissions": ["currentuser"],
   "networkAccess": {
-    "allowedDomains": [
-      "https://api.github.com",
-      "https://gitlab.com",
-      "https://api.bitbucket.org"
-    ]
+    "allowedDomains": ["*"],
+    "reasoning": "Users connect to their chosen Git provider (GitHub, GitLab SaaS, or self-hosted). Personal access tokens are sent only to the hostname configured in plugin settings."
   }
 }

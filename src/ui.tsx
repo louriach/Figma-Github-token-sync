@@ -11,7 +11,7 @@ import type {
 } from './types';
 import { DEFAULT_SETTINGS } from './types';
 import { GitHubProvider } from './lib/github';
-import { GitLabProvider } from './lib/gitlab';
+import { GitLabProvider, normalizeGitlabHost } from './lib/gitlab';
 import { BitbucketProvider } from './lib/bitbucket';
 import { collectionsToTokenFiles, tokenFilesToCollections, diffTokenFiles } from './lib/tokens';
 import type { GitProvider } from './lib/provider';
@@ -41,7 +41,7 @@ function countTokenFileStats(file: TokenFile): { variables: number; modes: numbe
 }
 
 function buildProvider(s: Settings): GitProvider {
-  if (s.provider === 'gitlab') return new GitLabProvider(s.token, s.owner, s.repo, s.branch);
+  if (s.provider === 'gitlab') return new GitLabProvider(s.token, s.owner, s.repo, s.branch, s.gitlabHost);
   if (s.provider === 'bitbucket') return new BitbucketProvider(s.token, s.owner, s.repo, s.branch);
   return new GitHubProvider(s.token, s.owner, s.repo, s.branch);
 }
@@ -151,7 +151,7 @@ export default function App() {
       case 'SETTINGS_DATA':
         if (msg.payload) {
           const s = msg.payload as Settings;
-          setSettings(s);
+          setSettings({ ...DEFAULT_SETTINGS, ...s });
           if (s.owner && s.repo) setRepoFullName(`${s.owner}/${s.repo}`);
           if (s.token && s.owner && s.repo && s.branch) {
             setTab('home');
@@ -227,7 +227,7 @@ export default function App() {
     setPatValidating(true);
     try {
       const provider: GitProvider =
-        settings.provider === 'gitlab' ? new GitLabProvider(patValue, '', '', '') :
+        settings.provider === 'gitlab' ? new GitLabProvider(patValue, '', '', '', settings.gitlabHost) :
         settings.provider === 'bitbucket' ? new BitbucketProvider(patValue, '', '', '') :
         new GitHubProvider(patValue, '', '', '');
       const { login } = await provider.validateToken();
@@ -244,7 +244,7 @@ export default function App() {
   }
 
   function handleDisconnect() {
-    const updated = { ...DEFAULT_SETTINGS, provider: settings.provider };
+    const updated = { ...DEFAULT_SETTINGS, provider: settings.provider, gitlabHost: settings.gitlabHost };
     setSettings(updated);
     setRepoFullName('');
     setRepos([]);
@@ -253,6 +253,24 @@ export default function App() {
     postMsg({ type: 'SAVE_SETTINGS', payload: updated });
     setStatus('Disconnected', 'idle');
     setTab('settings');
+  }
+
+  function handleGitlabHostChange(value: string) {
+    setSettings((prev) => {
+      const hadToken = !!prev.token;
+      const next = hadToken
+        ? { ...prev, gitlabHost: value, token: '', connectedLogin: '', owner: '', repo: '', branch: 'main' }
+        : { ...prev, gitlabHost: value };
+      if (hadToken) {
+        postMsg({ type: 'SAVE_SETTINGS', payload: next });
+        setStatus('GitLab host changed — reconnect with your token', 'idle');
+      }
+      return next;
+    });
+    setRepoFullName('');
+    setRepos([]);
+    setBranches([]);
+    setPatValue('');
   }
 
   function handleReset() {
@@ -265,7 +283,7 @@ export default function App() {
     setReposLoading(true);
     try {
       const p: GitProvider =
-        settings.provider === 'gitlab' ? new GitLabProvider(token, '', '', '') :
+        settings.provider === 'gitlab' ? new GitLabProvider(token, '', '', '', settings.gitlabHost) :
         settings.provider === 'bitbucket' ? new BitbucketProvider(token, '', '', '') :
         new GitHubProvider(token, '', '', '');
       setRepos(await p.listRepos());
@@ -283,7 +301,7 @@ export default function App() {
     setBranchesLoading(true);
     try {
       const p: GitProvider =
-        settings.provider === 'gitlab' ? new GitLabProvider(settings.token, owner, repo, '') :
+        settings.provider === 'gitlab' ? new GitLabProvider(settings.token, owner, repo, '', settings.gitlabHost) :
         settings.provider === 'bitbucket' ? new BitbucketProvider(settings.token, owner, repo, '') :
         new GitHubProvider(settings.token, owner, repo, '');
       const list = await p.listBranches(owner, repo);
@@ -475,8 +493,15 @@ export default function App() {
     settings.provider === 'gitlab' ? 'glpat-…' :
     settings.provider === 'bitbucket' ? 'username:app_password' :
     'github_pat_…';
+  const gitlabHostUrl = (() => {
+    try {
+      return normalizeGitlabHost(settings.gitlabHost);
+    } catch {
+      return 'https://gitlab.com';
+    }
+  })();
   const patDocsUrl =
-    settings.provider === 'gitlab' ? 'https://gitlab.com/-/user_settings/personal_access_tokens' :
+    settings.provider === 'gitlab' ? `${gitlabHostUrl}/-/user_settings/personal_access_tokens` :
     settings.provider === 'bitbucket' ? 'https://bitbucket.org/account/settings/app-passwords' :
     'https://github.com/settings/tokens/new?scopes=repo&description=Figma+Variable+Sync';
   const patHint =
@@ -559,6 +584,20 @@ export default function App() {
                 <option value="bitbucket">Bitbucket</option>
               </select>
             </div>
+
+            {settings.provider === 'gitlab' && (
+              <div className="field">
+                <label>GitLab instance URL</label>
+                <input
+                  type="text"
+                  placeholder="https://gitlab.com or gitlab.mycompany.com"
+                  value={settings.gitlabHost}
+                  onChange={(e) => handleGitlabHostChange(e.target.value)}
+                  disabled={isConnected}
+                />
+                <div className="hint">Use your self-hosted GitLab hostname if not on gitlab.com.</div>
+              </div>
+            )}
 
             <div className="setup-divider" />
 
@@ -988,6 +1027,20 @@ export default function App() {
                   <option value="bitbucket">Bitbucket</option>
                 </select>
               </div>
+
+              {settings.provider === 'gitlab' && (
+                <div className="field">
+                  <label>GitLab instance URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://gitlab.com or gitlab.mycompany.com"
+                    value={settings.gitlabHost}
+                    onChange={(e) => handleGitlabHostChange(e.target.value)}
+                    disabled={isConnected}
+                  />
+                  <div className="hint">Use your self-hosted GitLab hostname if not on gitlab.com.</div>
+                </div>
+              )}
 
               <hr className="divider" />
               <div className="section-title">Authentication</div>

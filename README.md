@@ -94,9 +94,11 @@ Find **Variable Sync to Repo** in the [Figma Community]([https://www.figma.com/c
 3. Click **Generate token** and copy it
 
 **GitLab:**
-1. Go to [gitlab.com/-/user_settings/personal_access_tokens](https://gitlab.com/-/user_settings/personal_access_tokens)
-2. Create a token with the `api` scope
+1. In the plugin, set **GitLab instance URL** to `https://gitlab.com` (default) or your self-hosted hostname (e.g. `gitlab.mycompany.com`)
+2. Go to `{your-host}/-/user_settings/personal_access_tokens` and create a token with the `api` scope
 3. Copy it
+
+**Self-hosted GitLab:** The plugin supports GitLab SaaS and self-managed instances. Enter your instance URL before connecting. The default is `https://gitlab.com`.
 
 **Bitbucket:**
 1. Go to **Bitbucket Settings → App passwords → Create app password**
@@ -108,11 +110,12 @@ Find **Variable Sync to Repo** in the [Figma Community]([https://www.figma.com/c
 On first open, the plugin shows the onboarding screen:
 
 1. Select your provider (GitHub, GitLab, or Bitbucket)
-2. Paste your personal access token and click **Connect**
-3. Select your repository from the dropdown
-4. Pick or type a branch name (it will be created from your default branch on first push)
-5. Set the tokens path (default: `tokens/`)
-6. Click **Start syncing** — the plugin switches to the Sync tab
+2. For GitLab, set your instance URL if not using gitlab.com
+3. Paste your personal access token and click **Connect**
+4. Select your repository from the dropdown
+5. Pick or type a branch name (it will be created from your default branch on first push)
+6. Set the tokens path (default: `tokens/`)
+7. Click **Start syncing** — the plugin switches to the Sync tab
 
 Settings are saved locally in Figma. You won't need to sign in again.
 
@@ -143,6 +146,10 @@ npm run watch        # rebuild on save
 ```
 
 Then in Figma: **Plugins → Development → Import plugin from manifest** and select `manifest.json`.
+
+### Network access
+
+The plugin manifest uses `allowedDomains: ["*"]` so users can connect to any Git provider hostname they configure (GitHub, GitLab SaaS, or self-hosted GitLab). Personal access tokens are stored in Figma's local storage and sent only to the hostname set in plugin settings. This is shown as "Unrestricted network access" on the Figma Community page.
 
 ### Project structure
 

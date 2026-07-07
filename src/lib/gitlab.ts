@@ -1,15 +1,51 @@
 import type { GitProvider, FileEntry, FileContent } from './provider';
 
+const DEFAULT_GITLAB_HOST = 'https://gitlab.com';
+
+export function normalizeGitlabHost(input: string): string {
+  const trimmed = input.trim();
+  if (!trimmed) throw new Error('GitLab instance URL is required');
+
+  let withScheme: string;
+  if (/^https?:\/\//i.test(trimmed)) {
+    withScheme = trimmed;
+  } else if (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) {
+    throw new Error('GitLab instance URL must use http or https');
+  } else {
+    withScheme = `https://${trimmed}`;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(withScheme);
+  } catch {
+    throw new Error('GitLab instance URL is invalid');
+  }
+
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    throw new Error('GitLab instance URL must use http or https');
+  }
+  if (!url.hostname) throw new Error('GitLab instance URL is invalid');
+
+  return `${url.protocol}//${url.host}`;
+}
+
+export function gitlabApiBase(host: string): string {
+  return `${normalizeGitlabHost(host)}/api/v4`;
+}
+
 export class GitLabProvider implements GitProvider {
-  private readonly base = 'https://gitlab.com/api/v4';
+  private readonly base: string;
   private readonly projectId: string;
 
   constructor(
     private token: string,
     private owner: string,
     private repo: string,
-    private branch: string
+    private branch: string,
+    host = DEFAULT_GITLAB_HOST
   ) {
+    this.base = gitlabApiBase(host);
     this.projectId = encodeURIComponent(`${owner}/${repo}`);
   }
 
