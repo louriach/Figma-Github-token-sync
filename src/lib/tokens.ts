@@ -38,12 +38,32 @@ function figmaTypeToTokenType(resolvedType: string): TokenType {
   return 'string';
 }
 
+const TOKEN_NUMBER_PRECISION = 1e6;
+
+function roundTokenNumber(n: number): number {
+  if (!Number.isFinite(n)) return n;
+  return Math.round(n * TOKEN_NUMBER_PRECISION) / TOKEN_NUMBER_PRECISION;
+}
+
+function tokenValuesEqual(
+  a: string | number | boolean,
+  b: string | number | boolean
+): boolean {
+  if (typeof a === 'number' && typeof b === 'number') {
+    return roundTokenNumber(a) === roundTokenNumber(b);
+  }
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 function scalarToTokenValue(
   resolvedType: string,
   value: ScalarValue
 ): string | number | boolean {
   if (resolvedType === 'COLOR' && typeof value === 'object' && 'r' in value) {
     return rgbaToHex(value.r, value.g, value.b, value.a ?? 1);
+  }
+  if (resolvedType === 'FLOAT' && typeof value === 'number') {
+    return roundTokenNumber(value);
   }
   return value as string | number | boolean;
 }
@@ -314,7 +334,7 @@ export function diffTokenFiles(
     for (const [path, value] of remote) {
       if (!local.has(path)) {
         entries.push({ path, kind: 'added', newValue: value });
-      } else if (JSON.stringify(local.get(path)) !== JSON.stringify(value)) {
+      } else if (!tokenValuesEqual(local.get(path)!, value)) {
         entries.push({ path, kind: 'updated', oldValue: local.get(path), newValue: value });
       }
     }
